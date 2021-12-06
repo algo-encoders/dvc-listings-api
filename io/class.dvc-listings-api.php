@@ -1,7 +1,7 @@
 <?php
 
-if(!class_exists('KINSTA_API')){
-	class KINSTA_API
+if(!class_exists('DVC_LISTINGS_API')){
+	class DVC_LISTINGS_API
 	{
 		private $rest_api_url;
 
@@ -59,7 +59,7 @@ if(!class_exists('KINSTA_API')){
 		    'pointsAvailable_points' => 'listing_points_available_points',
 		    'listingDescription' => 'listing_points_available_description',
 		    'resort' => 'listing_resort',
-		    'promotion' => '',
+		    'websiteStatus' => 'listing_status',
 		    'featured' => 'featured',
 		    'additionalDetails' => 'listing_additional_details',
 		    'additionalDetails_label' => 'listing_additional_details_label',
@@ -69,7 +69,7 @@ if(!class_exists('KINSTA_API')){
 		    'closingCosts' => 'listing_detail_closing_costs',
 		    'closingCostsDescription' => '',
 		    'closingCostsPayer' => 'total_cost_closing_costs_payer',
-		    'totalDuesPayer' => 'total_cost_total_dues_payer',
+		    'annualDuesPayer' => 'total_cost_total_dues_payer',
 		    'duesCredit' => 'total_cost_dues_credit',
 
         ];

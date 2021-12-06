@@ -1,9 +1,9 @@
 <?php 
 /*
-	Plugin Name: Kinsta Cloud
+	Plugin Name: DVC Listings API
 	Plugin URI: https://kinsta.cloud
-	Description: Plugin Use for Kinsta Api.
-	Version: 1.0.0
+	Description: Plugin Use for DVC Listings API.
+	Version: 1.0.1
 	Author: Omar Ahmad
 	Author URI: https://kinsta.cloud
 	Text Domain: k-cloud
@@ -20,7 +20,7 @@
 	$woo_cs_dir = plugin_dir_path( __FILE__ );
 	$woo_cs_url = plugin_dir_url( __FILE__ );
 
-	include('io/class.kinsta-api.php');
+	include('io/class.dvc-listings-api.php');
 
 	if(!function_exists('pree')){
 	    function pree($d){
@@ -30,8 +30,8 @@
         }
     }
 
-	if(class_exists('KINSTA_API')){
-		$woo_cs_android_settings = new KINSTA_API();
+	if(class_exists('DVC_LISTINGS_API')){
+		$woo_cs_android_settings = new DVC_LISTINGS_API();
 	}
 
 	

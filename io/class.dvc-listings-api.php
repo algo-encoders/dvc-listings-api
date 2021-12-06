@@ -144,6 +144,13 @@ if(!class_exists('DVC_LISTINGS_API')){
 
             ));
 
+            register_rest_route( $this->rest_api_url, '/listing/', array(
+                'methods' => 'GET',
+                'callback' => array($this, 'listing_get_request'),
+                'permission_callback' => '__return_true',
+
+            ));
+
 
 		}
 
@@ -174,6 +181,7 @@ if(!class_exists('DVC_LISTINGS_API')){
                 return $listing_val;
 
         }
+
 
 		private function update_listing_db($listing_obj){
 
@@ -346,6 +354,153 @@ if(!class_exists('DVC_LISTINGS_API')){
             }
 
             return new WP_REST_Response($resp, $resp['code']);
+
+        }
+
+        public function get_reverse_map(){
+		    $map_keys = array_keys($this->key_maps);
+		    $map_values = array_values($this->key_maps);
+		    return array_combine($map_values, $map_keys);
+        }
+
+        public function get_mapped_listing($listing_obj){
+
+		    $listing = [];
+		    if(!empty($listing_obj)){
+		        $listing_id = $listing_obj['ID'];
+
+		        $reverse_map = $this->get_reverse_map();
+
+		        foreach($this->post_keys as $p_key => $p_val){
+                    $listing[$reverse_map[$p_key]] = $listing_obj[$p_key];
+                }
+
+		        foreach($this->key_maps as $return_key => $system_key){
+                    if(array_key_exists($system_key, $this->post_keys)){continue;}
+
+                    $filed_val = get_field($system_key, $listing_id);
+
+
+                    if(array_key_exists($system_key, $this->diff_obj)){
+
+                        switch ($system_key){
+                            case 'listing_status':
+                                $listing[$return_key] = $filed_val->name;
+                                break;
+                            case 'listing_resort':
+                                $listing[$return_key] = $filed_val->post_title;
+                                break;
+                        }
+
+                    }else{
+                        $listing[$return_key] = $filed_val;
+                    }
+
+
+
+                }
+
+            }
+
+		    return $listing;
+        }
+
+        /*
+         * Order by available list
+         *
+         *  ‘ID‘ – Order by post id. Note the capitalization.
+            ‘author‘ – Order by author.
+            ‘title‘ – Order by title.
+            ‘name‘ – Order by post name (post slug).
+            ‘type‘ – Order by post type (available since version 4.0).
+            ‘date‘ – Order by date.
+            ‘modified‘ – Order by last modified date.
+            ‘parent‘ – Order by post/page parent id.
+         * */
+
+        public function listing_get_request($request){
+
+            $authorization = $request->get_header('Authorization');
+            $auth_status = $this->validate_auth($authorization);
+            $query_params = $request->get_query_params();
+
+            if(!$auth_status){
+                $resp = $this->get_code('auth_failed');
+                $resp_code = $resp['code'];
+            }else{
+
+                if(isset($query_params['listingId'])){
+
+                    $listing_id = sanitize_title($query_params['listingId']);
+                    $single_listing = get_page_by_title($listing_id, ARRAY_A, 'listing');
+
+                    if(empty($single_listing)){
+                        $resp = $this->get_code('listing_not_found');
+                        $resp_code = $resp['code'];
+                    }else{
+                        $resp = $this->get_mapped_listing($single_listing);
+                        $resp_code = 200;
+                    }
+
+                }else{
+
+                    $query_params = [
+                        'limit' => 'posts_per_page',
+                        'page' => 'paged',
+                        'orderby' => 'orderby',
+                        'order' => 'order',
+                    ];
+
+                    $default_params = [
+                        'posts_per_page' => 10,
+                        'paged' => 1,
+                        'post_type' => 'listing',
+                        'post_status' => 'publish',
+                    ];
+
+                    foreach($query_params as $query_param => $system_param){
+                        if(isset($_GET[$query_param]) && $_GET[$query_param]){
+                            $default_params[$system_param] = esc_attr($_GET[$query_param]);
+
+                            if($system_param == 'posts_per_page' && $default_params[$system_param] >50){
+                                $default_params[$system_param] = 50;
+                            }
+
+                            if($system_param == 'orderby' && $default_params[$system_param] == 'listingId'){
+                                $default_params[$system_param] = 'title';
+                            }
+                        }
+                    }
+
+                   $wp_query = new WP_Query($default_params);
+
+                   $all_listings = $wp_query->posts;
+
+                   $found_listings = [];
+
+                   if(!empty($all_listings)){
+
+                       foreach($all_listings as $single_listing){
+                           $single_listing = json_decode(json_encode($single_listing), true);
+                           $found_listings[] = $this->get_mapped_listing($single_listing);
+                       }
+
+                   }
+                   $listings['listings'] = $found_listings;
+                   $listings['total_listings'] = $wp_query->found_posts;
+                   $listings['listing_count'] = $wp_query->post_count;
+                   $listings['max_pages'] = $wp_query->max_num_pages;
+                   $listings['page'] = $default_params['paged'];
+                   $listings['limit'] = $default_params['posts_per_page'];
+
+                   $resp = $listings;
+                   $resp_code = 200;
+
+                }
+
+            }
+
+            return new WP_REST_Response($resp, $resp_code);
 
         }
 

@@ -231,6 +231,17 @@ if(!class_exists('DVC_LISTINGS_API')){
                             $post_update = wp_update_post($post_args, true);
                             $update_type = 'listing_update';
                     }else{
+                            if($post_args['post_status'] == 'publish'){
+
+                                $schedule_time = '+10 minutes';
+                                $postdate = date('Y-m-d H:i:s',strtotime($schedule_time, current_time('U')));
+                                $postdate_gmt = gmdate('Y-m-d H:i:s',strtotime($schedule_time));
+
+                                $post_args['post_status'] = 'future';
+                                $post_args['post_date'] = $postdate;
+                                $post_args['post_date_gmt'] = $postdate_gmt;
+                                $post_args['edit_date'] = true;
+                            }
                             $post_update = wp_insert_post($post_args, true);
                             $update_type = 'listing_created';
                     }

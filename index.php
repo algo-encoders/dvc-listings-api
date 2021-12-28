@@ -3,7 +3,7 @@
 	Plugin Name: DVC Listings API
 	Plugin URI: https://kinsta.cloud
 	Description: Plugin Use for DVC Listings API.
-	Version: 1.0.1
+	Version: 2.0.3
 	Author: Omar Ahmad
 	Author URI: https://kinsta.cloud
 	Text Domain: k-cloud
